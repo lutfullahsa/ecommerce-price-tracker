@@ -4,6 +4,9 @@ from pathlib import Path
 from veritabani import FiyatVeritabani
 from kaziyici import FiyatKaziyici
 from raporlayici import FiyatRaporlayici
+from loglayici import logger_olustur
+
+logger = logger_olustur()
 
 
 def hedefleri_yukle(dosya_yolu="hedefler.json"):
@@ -15,6 +18,7 @@ def hedefleri_yukle(dosya_yolu="hedefler.json"):
 
 
 def calistir():
+    logger.info("Bot çalışmaya başladı.")
     db = FiyatVeritabani()
     kaziyici = FiyatKaziyici()
     raporlayici = FiyatRaporlayici()
@@ -61,6 +65,7 @@ def calistir():
                     "stok_durumu": veri["stok_durumu"]
                 })
             else:
+                logger.error(f"{hedef['urun_adi']} için hata: {veri['hata']}")
                 sonuclar.append({
                     "basarili": False,
                     "urun_adi": hedef["urun_adi"],
@@ -72,7 +77,10 @@ def calistir():
 
         raporlayici.konsol_ozeti_yazdir(sonuclar)
         raporlayici.excel_raporu_olustur(db)
+        logger.info("Bot başarıyla tamamlandı.")
 
+    except Exception as e:
+        logger.critical(f"Beklenmedik bir hata oluştu: {e}", exc_info=True)
     finally:
         db.kapat()
 

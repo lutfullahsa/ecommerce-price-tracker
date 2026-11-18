@@ -1,8 +1,11 @@
 import json
 import re
+import time
 import requests
 from bs4 import BeautifulSoup
+from loglayici import logger_olustur
 
+logger = logger_olustur()
 
 class FiyatKaziyici:
     def __init__(self, zaman_asimi=15):
@@ -66,33 +69,38 @@ class FiyatKaziyici:
         return None, None
 
     def urun_bilgisi_cek(self, url, fiyat_secici=None, stok_secici=None):
-        try:
-            yanit = requests.get(url, headers=self.basliklar, timeout=self.zaman_asimi)
-            yanit.raise_for_status()
-            corba = BeautifulSoup(yanit.text, "html.parser")
+        for deneme in range(3):
+            try:
+                yanit = requests.get(url, headers=self.basliklar, timeout=self.zaman_asimi)
+                yanit.raise_for_status()
+                corba = BeautifulSoup(yanit.text, "html.parser")
 
-            # 1. Öncelik: E-ticaret sitelerinin standart JSON-LD ürün verisi
-            fiyat, stok_durumu = self._json_ld_fiyat_bul(corba)
+                # 1. Öncelik: E-ticaret sitelerinin standart JSON-LD ürün verisi
+                fiyat, stok_durumu = self._json_ld_fiyat_bul(corba)
 
-            # 2. Öncelik: Özel CSS seçici (Yedek veya yerel test sayfaları için)
-            if fiyat is None and fiyat_secici:
-                fiyat_etiketi = corba.select_one(fiyat_secici)
-                if fiyat_etiketi:
-                    fiyat = self.fiyati_sayiya_cevir(fiyat_etiketi.get_text())
+                # 2. Öncelik: Özel CSS seçici (Yedek veya yerel test sayfaları için)
+                if fiyat is None and fiyat_secici:
+                    fiyat_etiketi = corba.select_one(fiyat_secici)
+                    if fiyat_etiketi:
+                        fiyat = self.fiyati_sayiya_cevir(fiyat_etiketi.get_text())
 
-            if fiyat is None:
-                return {"basarili": False, "hata": "Sayfadan fiyat bilgisi okunamadı (Bot koruması veya seçici uyuşmazlığı)."}
+                if fiyat is None:
+                    return {"basarili": False, "hata": "Sayfadan fiyat bilgisi okunamadı (Bot koruması veya seçici uyuşmazlığı)."}
 
-            if stok_durumu is None:
-                stok_durumu = "Stokta"
-                if stok_secici:
-                    stok_etiketi = corba.select_one(stok_secici)
-                    if stok_etiketi:
-                        stok_metni = stok_etiketi.get_text(strip=True).lower()
-                        if any(k in stok_metni for k in ["tükendi", "gelince haber ver", "out of stock"]):
-                            stok_durumu = "Tükendi"
+                if stok_durumu is None:
+                    stok_durumu = "Stokta"
+                    if stok_secici:
+                        stok_etiketi = corba.select_one(stok_secici)
+                        if stok_etiketi:
+                            stok_metni = stok_etiketi.get_text(strip=True).lower()
+                            if any(k in stok_metni for k in ["tükendi", "gelince haber ver", "out of stock"]):
+                                stok_durumu = "Tükendi"
 
-            return {"basarili": True, "fiyat": fiyat, "stok_durumu": stok_durumu}
+                return {"basarili": True, "fiyat": fiyat, "stok_durumu": stok_durumu}
 
-        except requests.RequestException as hata:
-            return {"basarili": False, "hata": f"Bağlantı hatası: {hata}"}
+            except requests.RequestException as hata:
+                logger.warning(f"Bağlantı hatası (Deneme {deneme + 1}/3): {url} - {hata}")
+                if deneme < 2:
+                    time.sleep(2)
+                else:
+                    return {"basarili": False, "hata": f"Bağlantı hatası: {hata}"}
