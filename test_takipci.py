@@ -1,5 +1,7 @@
 import unittest
 from pathlib import Path
+from unittest.mock import patch, MagicMock
+import requests
 from kaziyici import FiyatKaziyici
 from veritabani import FiyatVeritabani
 
@@ -45,6 +47,17 @@ class TestFiyatTakipci(unittest.TestCase):
         self.assertEqual(len(gecmis), 2)
         self.assertEqual(gecmis[0][0], 880.0)
         self.assertEqual(gecmis[1][0], 950.0)
+
+    @patch('kaziyici.requests.get')
+    def test_retry_mekanizmasi(self, mock_get):
+        # 3 denemede de hata aldırıyoruz
+        mock_get.side_effect = requests.exceptions.RequestException("Bağlantı Hatası")
+        kaziyici = FiyatKaziyici()
+        sonuc = kaziyici.urun_bilgisi_cek("http://test.com")
+        
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertFalse(sonuc["basarili"])
+        self.assertIn("Bağlantı hatası", sonuc["hata"])
 
 
 if __name__ == "__main__":
