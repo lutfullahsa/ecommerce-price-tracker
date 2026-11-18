@@ -1,0 +1,81 @@
+import json
+import time
+from pathlib import Path
+from veritabani import FiyatVeritabani
+from kaziyici import FiyatKaziyici
+from raporlayici import FiyatRaporlayici
+
+
+def hedefleri_yukle(dosya_yolu="hedefler.json"):
+    yol = Path(dosya_yolu)
+    if not yol.exists():
+        raise FileNotFoundError(f"Hedef dosyası bulunamadı: {dosya_yolu}")
+    with yol.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def calistir():
+    db = FiyatVeritabani()
+    kaziyici = FiyatKaziyici()
+    raporlayici = FiyatRaporlayici()
+
+    try:
+        hedefler = hedefleri_yukle()
+        sonuclar = []
+
+        print(f"{len(hedefler)} ürün için canlı fiyat kontrolü başlatılıyor...\n")
+
+        for hedef in hedefler:
+            urun_kaydi = db.urun_ekle_veya_getir(
+                urun_adi=hedef["urun_adi"],
+                url=hedef["url"],
+                platform=hedef.get("platform", "Genel"),
+                hedef_fiyat=hedef.get("hedef_fiyat")
+            )
+            urun_id = urun_kaydi
+
+            gecmis = db.son_iki_fiyati_getir(urun_id)
+            onceki_fiyat = gecmis[0][0] if gecmis else None
+
+            veri = kaziyici.urun_bilgisi_cek(
+                url=hedef["url"],
+                fiyat_secici=hedef["fiyat_secici"],
+                stok_secici=hedef.get("stok_secici")
+            )
+
+            if veri["basarili"]:
+                para_birimi = hedef.get("para_birimi", "TRY")
+                db.fiyat_kaydet(
+                    urun_id=urun_id,
+                    fiyat=veri["fiyat"],
+                    stok_durumu=veri["stok_durumu"],
+                    para_birimi=para_birimi
+                )
+                sonuclar.append({
+                    "basarili": True,
+                    "urun_adi": hedef["urun_adi"],
+                    "fiyat": veri["fiyat"],
+                    "para_birimi": para_birimi,
+                    "hedef_fiyat": hedef.get("hedef_fiyat"),
+                    "onceki_fiyat": onceki_fiyat,
+                    "stok_durumu": veri["stok_durumu"]
+                })
+            else:
+                sonuclar.append({
+                    "basarili": False,
+                    "urun_adi": hedef["urun_adi"],
+                    "hata": veri["hata"]
+                })
+
+            # Sunucuyu yormamak için nazik bekleme
+            time.sleep(1)
+
+        raporlayici.konsol_ozeti_yazdir(sonuclar)
+        raporlayici.excel_raporu_olustur(db)
+
+    finally:
+        db.kapat()
+
+
+if __name__ == "__main__":
+    calistir()

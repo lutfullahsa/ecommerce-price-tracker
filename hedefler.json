@@ -1,0 +1,20 @@
+[
+  {
+    "urun_adi": "Örnek Kitap - Klasik Eser",
+    "url": "https://ornek-magaza.com",
+    "platform": "Online Kitabevi",
+    "fiyat_secici": ".product-price, .price-sales",
+    "stok_secici": ".out-of-stock, .stock-alert",
+    "para_birimi": "TRY",
+    "hedef_fiyat": 95.00
+  },
+  {
+    "urun_adi": "Örnek Elektronik Ürün",
+    "url": "https://ornek-magaza.com",
+    "platform": "Teknoloji Mağazası",
+    "fiyat_secici": ".product-price",
+    "stok_secici": ".stock-status",
+    "para_birimi": "TRY",
+    "hedef_fiyat": 1250.00
+  }
+]
