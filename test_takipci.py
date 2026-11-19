@@ -78,7 +78,6 @@ class TestFiyatTakipci(unittest.TestCase):
             except Exception as e:
                 self.fail(f"Telegram bildirimci hata verdi: {e}")
 
-
     def test_rakip_karsilastirici(self):
         from karsilastirici import RakipKarsilastirici
         karsilastirici = RakipKarsilastirici()
@@ -93,7 +92,31 @@ class TestFiyatTakipci(unittest.TestCase):
         self.assertEqual(len(matris), 1)
         self.assertEqual(matris[0]["grup_kodu"], "G1")
         self.assertEqual(matris[0]["en_dusuk_fiyat"], 100.0)
-        self.assertEqual(matris[0]["yuzde_avantaj"], 16.67) # ((120-100)/120) * 100 = 16.666... -> 16.67
+        self.assertEqual(matris[0]["yuzde_avantaj"], 16.67)  # ((120-100)/120) * 100 = 16.666... -> 16.67
+
+    def test_dashboard_olustur(self):
+        from dashboard import HtmlDashboardOlusturucu
+        dashboard_yolu = "cikti/test_dashboard.html"
+        
+        # Test için veri ekle
+        urun_id = self.db.urun_ekle_veya_getir("Test Ürün", "https://test.com")
+        self.db.fiyat_kaydet(urun_id, 100.0)
+        
+        # Dashboard oluştur
+        HtmlDashboardOlusturucu.dashboard_olustur(self.db, dashboard_yolu)
+        
+        # Dosyanın oluştuğunu doğrula
+        self.assertTrue(os.path.exists(dashboard_yolu))
+        
+        with open(dashboard_yolu, "r", encoding="utf-8") as f:
+            content = f.read()
+            self.assertIn("Test Ürün", content)
+            self.assertIn("Chart", content)
+            
+        # Temizle
+        if os.path.exists(dashboard_yolu):
+            os.remove(dashboard_yolu)
+
 
 if __name__ == "__main__":
     unittest.main()

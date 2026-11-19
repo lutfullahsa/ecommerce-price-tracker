@@ -7,6 +7,7 @@ from raporlayici import FiyatRaporlayici
 from loglayici import logger_olustur
 from bildirimci import TelegramBildirimci
 from karsilastirici import RakipKarsilastirici
+from dashboard import HtmlDashboardOlusturucu
 
 logger = logger_olustur()
 
@@ -105,6 +106,7 @@ def calistir():
         cikti_yolu.parent.mkdir(exist_ok=True)
         with cikti_yolu.open("w", encoding="utf-8") as f:
             json.dump(matris, f, ensure_ascii=False, indent=4)
+        HtmlDashboardOlusturucu.dashboard_olustur(db)
 
         logger.info("Bot başarıyla tamamlandı.")
 
