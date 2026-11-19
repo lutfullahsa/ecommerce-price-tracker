@@ -6,6 +6,7 @@ from kaziyici import FiyatKaziyici
 from raporlayici import FiyatRaporlayici
 from loglayici import logger_olustur
 from bildirimci import TelegramBildirimci
+from karsilastirici import RakipKarsilastirici
 
 logger = logger_olustur()
 
@@ -60,6 +61,8 @@ def calistir():
                 sonuclar.append({
                     "basarili": True,
                     "urun_adi": hedef["urun_adi"],
+                    "platform": hedef.get("platform", "Genel"),
+                    "grup_kodu": hedef.get("grup_kodu"),
                     "fiyat": veri["fiyat"],
                     "para_birimi": para_birimi,
                     "hedef_fiyat": hedef.get("hedef_fiyat"),
@@ -89,6 +92,20 @@ def calistir():
 
         raporlayici.konsol_ozeti_yazdir(sonuclar)
         raporlayici.excel_raporu_olustur(db)
+
+        # Rakip karşılaştırma matrisi
+        karsilastirici = RakipKarsilastirici()
+        matris = karsilastirici.matris_olustur(sonuclar)
+        
+        print("\n--- Rakip Fiyat Karşılaştırma Matrisi ---")
+        for satir in matris:
+            print(f"Grup: {satir['grup_kodu']} | Avantaj: %{satir['yuzde_avantaj']} | En Ucuz: {satir['en_ucuz_platform']} ({satir['en_dusuk_fiyat']} {satir['para_birimi']})")
+
+        cikti_yolu = Path("cikti/rakip_karsilastirma.json")
+        cikti_yolu.parent.mkdir(exist_ok=True)
+        with cikti_yolu.open("w", encoding="utf-8") as f:
+            json.dump(matris, f, ensure_ascii=False, indent=4)
+
         logger.info("Bot başarıyla tamamlandı.")
 
     except Exception as e:

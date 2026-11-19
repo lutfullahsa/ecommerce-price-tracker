@@ -79,5 +79,21 @@ class TestFiyatTakipci(unittest.TestCase):
                 self.fail(f"Telegram bildirimci hata verdi: {e}")
 
 
+    def test_rakip_karsilastirici(self):
+        from karsilastirici import RakipKarsilastirici
+        karsilastirici = RakipKarsilastirici()
+        
+        sonuclar = [
+            {"basarili": True, "grup_kodu": "G1", "platform": "P1", "fiyat": 100.0, "para_birimi": "TRY"},
+            {"basarili": True, "grup_kodu": "G1", "platform": "P2", "fiyat": 120.0, "para_birimi": "TRY"}
+        ]
+        
+        matris = karsilastirici.matris_olustur(sonuclar)
+        
+        self.assertEqual(len(matris), 1)
+        self.assertEqual(matris[0]["grup_kodu"], "G1")
+        self.assertEqual(matris[0]["en_dusuk_fiyat"], 100.0)
+        self.assertEqual(matris[0]["yuzde_avantaj"], 16.67) # ((120-100)/120) * 100 = 16.666... -> 16.67
+
 if __name__ == "__main__":
     unittest.main()
