@@ -1,0 +1,36 @@
+name: Price Tracker Automation
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 6,15 * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run tests
+        run: python -m unittest -v test_takipci.py
+      - name: Run bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: price-tracking-reports
+          if-no-files-found: ignore
+          path: |
+            cikti/dashboard.html
+            cikti/fiyat_raporu.xlsx
+            cikti/rakip_karsilastirma.json

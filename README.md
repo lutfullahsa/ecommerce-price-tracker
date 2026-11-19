@@ -1,45 +1,62 @@
-# E-Commerce Competitor Price Tracker / E-Ticaret Rakip Fiyat Takip Botu (v1.0)
-
-[English](#english) | [Türkçe](#türkçe)
-
----
+﻿# E-Commerce Competitor Price Tracker / E-Ticaret Rakip Fiyat Takip Botu (v2.4)
 
 ## English
+This project is an automated price monitoring system that tracks product prices across different platforms. It provides analytical insights, visual reports, and automated notifications to help users make data-driven purchasing decisions.
 
-### Overview
-A modular Python web scraping and price monitoring tool that tracks product prices and stock availability, stores historical time-series data in a relational **SQLite** database (`urunler` & `fiyat_gecmisi`), triggers target price drop alerts, and exports formatted **Excel** reports.
+### Architecture
+- veritabani.py: Relational SQLite database management.
+- kaziyici.py: Web scraper with 3x retry mechanism.
+- raporlayici.py: Excel and console reporting utility.
+- loglayici.py: Centralized logging system.
+- bildirimci.py: Telegram instant notification service.
+- karsilastirici.py: Competitor price comparison engine.
+- dashboard.py: Interactive HTML dashboard generation.
+- main.py: Orchestration and workflow execution.
 
 ### Key Features
-- **Relational SQLite Architecture:** Normalized `urunler` and `fiyat_gecmisi` tables with foreign key constraints.
-- **Multi-Currency Price Parser:** Accurately parses Turkish (`1.499,90 TL`), US (`$1,250.50`), and UK (`£51.77`) price formats.
-- **Target Price Alerts & Excel Export:** Detects price drops against target thresholds and generates `fiyat_raporu.xlsx`.
-- **Smart Extraction:** Supports structured `JSON-LD` schema data with fallback CSS selectors for live e-commerce pages.
-- **Unit Tested:** Verified via Python's built-in `unittest` suite.
+- Relational SQLite time-series data storage.
+- Intelligent scraper with JSON-LD & CSS support.
+- Robust 3x retry mechanism for network resilience.
+- Instant Telegram opportunity alerts.
+- Competitor Price Comparison Matrix.
+- Interactive Chart.js HTML Dashboard.
+- 24/7 cloud automation via GitHub Actions.
 
-### Usage
-```bash
-python -m pip install requests beautifulsoup4 openpyxl
-python main.py
-python -m unittest test_takipci.py
-```
+### Setup
+1. Clone the repository.
+2. Install dependencies: `pip install -r requirements.txt`
+3. Configure `hedefler.json` (and optional `.env` from `.env.example` for Telegram alerts).
+4. Run tests: `python -m unittest -v test_takipci.py`
+5. Run bot: `python main.py`
+
 
 ---
 
 ## Türkçe
+Bu proje, çeşitli platformlardaki ürün fiyatlarını takip eden otomatik bir fiyat izleme sistemidir. Veri odaklı satın alma kararları vermenize yardımcı olmak için analitik içgörüler, görsel raporlar ve otomatik bildirimler sunar.
 
-### Proje Amacı
-E-ticaret sitelerindeki ürün fiyatlarını ve stok durumlarını takip eden, fiyat geçmişini ilişkisel **SQLite** veritabanında (`urunler` ve `fiyat_gecmisi`) saklayan, hedef fiyat düşüşlerinde uyarı veren ve **Excel** raporu üreten modüler bir Python otomasyon aracıdır.
+### Mimari
+- veritabani.py: İlişkisel SQLite veritabanı yönetimi.
+- kaziyici.py: 3x yeniden deneme kalkanına sahip web kazıyıcı.
+- raporlayici.py: Excel ve konsol raporlama aracı.
+- loglayici.py: Merkezi loglama sistemi.
+- bildirimci.py: Telegram anlık fırsat bildirim servisi.
+- karsilastirici.py: Rakip fiyat karşılaştırma motoru.
+- dashboard.py: İnteraktif HTML dashboard oluşturucu.
+- main.py: Sistem orkestrasyonu ve iş akışı yönetimi.
 
 ### Öne Çıkan Özellikler
-- **İlişkisel SQLite Veritabanı:** Yabancı anahtar (`Foreign Key`) ilişkili `urunler` ve `fiyat_gecmisi` tabloları.
-- **Akıllı Fiyat Ayrıştırıcı:** Türk Lirası (`1.499,90 TL`), Dolar (`$1,250.50`) ve Sterlin (`£51.77`) formatlarını hatasız sayıya çevirir.
-- **Hedef Fiyat Alarmı ve Excel Çıktısı:** Hedef fiyatın altına düşen ürünleri yakalar ve `fiyat_raporu.xlsx` raporu oluşturur.
-- **Akıllı Veri Okuma:** Canlı e-ticaret sayfalarında yapılandırılmış `JSON-LD` verisini ve yedek CSS seçicilerini destekler.
-- **Birim Testleri:** `unittest` kütüphanesi ile doğrulanmış test altyapısı.
+- İlişkisel SQLite zaman serisi veri depolama.
+- JSON-LD ve CSS destekli akıllı kazıyıcı.
+- Ağ direnci için 3x yeniden deneme (retry) kalkanı.
+- Anlık Telegram fırsat bildirimleri.
+- Rakip Fiyat Karşılaştırma Matrisi.
+- Chart.js tabanlı interaktif HTML Dashboard.
+- GitHub Actions ile 7/24 bulut otomasyonu.
 
-### Kullanım
-```bash
-python -m pip install requests beautifulsoup4 openpyxl
-python main.py
-python -m unittest test_takipci.py
-```
+### Kurulum
+1. Depoyu klonlayın.
+2. Gereksinimleri yükleyin: `pip install -r requirements.txt`
+3. `hedefler.json` dosyasını (ve isteğe bağlı Telegram bildirimleri için `.env.example` dosyasından `.env` dosyasını) yapılandırın.
+4. Testleri çalıştırın: `python -m unittest -v test_takipci.py`
+5. Botu çalıştırın: `python main.py`
