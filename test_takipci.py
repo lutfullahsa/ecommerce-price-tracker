@@ -1,3 +1,4 @@
+import os
 import unittest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
@@ -58,6 +59,24 @@ class TestFiyatTakipci(unittest.TestCase):
         self.assertEqual(mock_get.call_count, 3)
         self.assertFalse(sonuc["basarili"])
         self.assertIn("Bağlantı hatası", sonuc["hata"])
+
+    @patch('bildirimci.urllib.request.urlopen')
+    def test_telegram_bildirim_gonderildi(self, mock_urlopen):
+        from bildirimci import TelegramBildirimci
+        with patch.dict('os.environ', {'TELEGRAM_BOT_TOKEN': '123:abc', 'TELEGRAM_CHAT_ID': '999'}):
+            tg = TelegramBildirimci()
+            tg.firsat_bildirimi_gonder("Ürün", 100, 200, "TRY", "http://url.com")
+            self.assertTrue(mock_urlopen.called)
+
+    def test_telegram_bildirim_eksik_bilgi(self):
+        from bildirimci import TelegramBildirimci
+        # Token ve Chat ID yokken sessizce atlamalı
+        with patch.dict('os.environ', {}, clear=True):
+            tg = TelegramBildirimci()
+            try:
+                tg.firsat_bildirimi_gonder("Ürün", 100, 200, "TRY", "http://url.com")
+            except Exception as e:
+                self.fail(f"Telegram bildirimci hata verdi: {e}")
 
 
 if __name__ == "__main__":

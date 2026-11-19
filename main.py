@@ -5,6 +5,7 @@ from veritabani import FiyatVeritabani
 from kaziyici import FiyatKaziyici
 from raporlayici import FiyatRaporlayici
 from loglayici import logger_olustur
+from bildirimci import TelegramBildirimci
 
 logger = logger_olustur()
 
@@ -20,6 +21,7 @@ def hedefleri_yukle(dosya_yolu="hedefler.json"):
 def calistir():
     logger.info("Bot çalışmaya başladı.")
     db = FiyatVeritabani()
+    telegram = TelegramBildirimci()
     kaziyici = FiyatKaziyici()
     raporlayici = FiyatRaporlayici()
 
@@ -64,6 +66,16 @@ def calistir():
                     "onceki_fiyat": onceki_fiyat,
                     "stok_durumu": veri["stok_durumu"]
                 })
+
+                hedef_fiyat = hedef.get("hedef_fiyat")
+                if hedef_fiyat is not None and veri["fiyat"] <= hedef_fiyat:
+                    telegram.firsat_bildirimi_gonder(
+                        urun_adi=hedef["urun_adi"],
+                        yeni_fiyat=veri["fiyat"],
+                        hedef_fiyat=hedef_fiyat,
+                        para_birimi=para_birimi,
+                        url=hedef["url"]
+                    )
             else:
                 logger.error(f"{hedef['urun_adi']} için hata: {veri['hata']}")
                 sonuclar.append({
