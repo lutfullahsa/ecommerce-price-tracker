@@ -1,5 +1,6 @@
 import json
 import time
+from anomali_analizci import FiyatAnomaliAnalizci
 from pathlib import Path
 from veritabani import FiyatVeritabani
 from kaziyici import FiyatKaziyici
@@ -107,6 +108,8 @@ def calistir():
         with cikti_yolu.open("w", encoding="utf-8") as f:
             json.dump(matris, f, ensure_ascii=False, indent=4)
         HtmlDashboardOlusturucu.dashboard_olustur(db)
+        anomali = FiyatAnomaliAnalizci(db)
+        anomali.raporu_kaydet_ve_yazdir()
 
         logger.info("Bot başarıyla tamamlandı.")
 

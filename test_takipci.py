@@ -116,7 +116,17 @@ class TestFiyatTakipci(unittest.TestCase):
         # Temizle
         if os.path.exists(dashboard_yolu):
             os.remove(dashboard_yolu)
+    def test_sahte_indirim_tespiti(self):
+        from anomali_analizci import FiyatAnomaliAnalizci
+        urun_id = self.db.urun_ekle_veya_getir("Kampanyalı Monitör", "https://test-monitor.com")
+        self.db.fiyat_kaydet(urun_id, 5000.0)
+        self.db.fiyat_kaydet(urun_id, 6200.0)  # Önce fiyat şişirildi
+        self.db.fiyat_kaydet(urun_id, 5200.0)  # Sonra sahte indirim yapıldı
 
+        analizci = FiyatAnomaliAnalizci(self.db)
+        sonuc = analizci.analiz_et()
+        self.assertEqual(len(sonuc), 1)
+        self.assertTrue(sonuc[0]["sahte_indirim"])
 
 if __name__ == "__main__":
     unittest.main()
